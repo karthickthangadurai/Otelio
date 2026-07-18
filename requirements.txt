@@ -1,0 +1,2 @@
+textract==2.0.0
+unstructured[pdf]==0.18.32
