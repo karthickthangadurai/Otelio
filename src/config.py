@@ -31,6 +31,7 @@ NO_RESULT_SENTINEL = "No relevant information found in the hotel document."
 MIN_NARRATIVE_CHARS = 30               # skip title-only / junk chunks
 SKIP_CATEGORIES = {"Header", "Footer", "PageBreak"}
 HOTEL_NAME_OVERRIDE = None             # set to a string to bypass auto-extraction
+HOTEL_ID = "grand-azure-bay-hotel"
 
 # --- Reservations (SQLite) 
 DB_PATH = str(BASE_DIR / "reservations.db")

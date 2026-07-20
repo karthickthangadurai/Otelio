@@ -1,7 +1,7 @@
 """SQLite connection + schema for reservations."""
 
 import sqlite3
-from config import DB_PATH
+from src.config import DB_PATH
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS reservations (
