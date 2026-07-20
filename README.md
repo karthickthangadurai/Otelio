@@ -1,4 +1,3 @@
-markdown
 # Otelio — Hotel Reservation Assistant
 
 An AI assistant for the Grand Azure Bay Hotel. It answers guest questions from
