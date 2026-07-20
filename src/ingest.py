@@ -12,7 +12,7 @@ from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunct
 
 from src.config import ( 
     PDF_PATH, CHROMA_PATH, COLLECTION_NAME, EMBEDDING_MODEL,
-    MIN_NARRATIVE_CHARS, SKIP_CATEGORIES, HOTEL_NAME_OVERRIDE,
+    MIN_NARRATIVE_CHARS, SKIP_CATEGORIES, HOTEL_NAME_OVERRIDE,DATA_DIR
 )
 
 def extract_chunks(pdf_path):
@@ -76,14 +76,13 @@ def load_records(records):
     )
     return collection.count()
 
-def main():
-    chunks = extract_chunks(PDF_PATH)
+def ingest_pdf(pdf_path):
+    chunks = extract_chunks(pdf_path)
     hotel_name, hotel_slug = detect_hotel(chunks)
     records = build_records(chunks, hotel_name, hotel_slug)
-    count = load_records(records)
-    print(f"Ingested {len(records)} sections for '{hotel_name}' "
-          f"({count} total in collection '{COLLECTION_NAME}')")
+    return load_records(records), hotel_name
 
-
-if __name__ == "__main__":
-    main()
+def main():
+    for pdf in DATA_DIR.glob("*.pdf"):        # every hotel PDF in data/
+        count, name = ingest_pdf(pdf)
+        print(f"Ingested '{name}' from {pdf.name}")
