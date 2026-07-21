@@ -1,1 +1,21 @@
-/.otelio
+# Virtual Environment
+.otelio/
+
+# Environment Variables / Secrets
+.env
+
+# Local Databases & Vector Stores
+chroma_db/
+src/tools/reservations.db
+
+# Python bytecode / caches (Catches all nested __pycache__ folders)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Excalidraw design backups (Optional: keep if you don't want them in git)
+otelio.excalidraw
+otelio.excalidraw.png
