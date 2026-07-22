@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()  # reads .env in project root
 
 # --- Paths 
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
 PDF_PATH = DATA_DIR / "hotel_rag_document_v2.pdf"
 

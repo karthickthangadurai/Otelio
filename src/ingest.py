@@ -86,3 +86,6 @@ def main():
     for pdf in DATA_DIR.glob("*.pdf"):        # every hotel PDF in data/
         count, name = ingest_pdf(pdf)
         print(f"Ingested '{name}' from {pdf.name}")
+
+if __name__ == "__main__":
+    main()

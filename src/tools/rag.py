@@ -1,4 +1,4 @@
-from config import CHROMA_PATH, COLLECTION_NAME, EMBEDDING_MODEL, TOP_K, \
+from src.config import CHROMA_PATH, COLLECTION_NAME, EMBEDDING_MODEL, TOP_K, \
     DISTANCE_THRESHOLD, NO_RESULT_SENTINEL, DEFAULT_HOTEL
 
 import chromadb
@@ -11,7 +11,19 @@ _collection = _client.get_collection(name=COLLECTION_NAME, embedding_function=_e
 
 
 def search_hotel_info(query, n_results=TOP_K):
-    """Search the hotel information document. Returns formatted text for the LLM."""
+    
+    """Search the hotel's information document.
+
+    Use for any factual question about the hotel — location, timings, amenities,
+    hygiene, safety, dining, policies. Always search before answering; never
+    answer from your own knowledge. If nothing relevant is found, say so.
+
+    Args:
+        query: The guest's question.
+
+    Returns:
+        Relevant document sections, or a not-found message.
+    """
     res = _collection.query(
         query_texts=[query],
         n_results=n_results,

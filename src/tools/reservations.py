@@ -20,6 +20,23 @@ def _valid_date(value):
 
 def create_reservation(guest_name, email, check_in, check_out,
                        room_type=DEFAULT_ROOM_TYPE):
+    
+    """Create a reservation.
+
+    Only call once the guest has given all four: name, email, check-in,
+    check-out. Ask for anything missing. Never invent values.
+
+    Args:
+        guest_name: Guest's full name.
+        email: Guest's email address.
+        check_in: Arrival date, YYYY-MM-DD.
+        check_out: Departure date, YYYY-MM-DD, after check_in.
+        room_type: "standard", "deluxe", or "suite".
+
+    Returns:
+        Reservation ID and details, or an error message.
+    """
+        
     if not guest_name or not guest_name.strip():
         return {"ok": False, "error": "Guest name is required."}
     if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email or ""):
@@ -53,6 +70,20 @@ def create_reservation(guest_name, email, check_in, check_out,
 
 
 def get_reservation(reservation_id, email):
+
+    """Look up one reservation.
+
+    Requires both the reservation ID and the email it was booked under; ask for
+    whichever is missing. Returns a single reservation only — bulk listing is
+    not possible.
+
+    Args:
+        reservation_id: Booking reference, e.g. "RES-A3F8C1".
+        email: Email on the reservation.
+
+    Returns:
+        Reservation details, or a not-found message.
+    """
     conn = get_connection()
     try:
         row = conn.execute(
@@ -71,6 +102,20 @@ def get_reservation(reservation_id, email):
 
 
 def cancel_reservation(reservation_id, email):
+
+    """Cancel a reservation.
+
+    Requires both the reservation ID and the email it was booked under. Confirm
+    with the guest before calling.
+
+    Args:
+        reservation_id: Booking reference, e.g. "RES-A3F8C1".
+        email: Email on the reservation.
+
+    Returns:
+        Cancellation confirmation, or a not-found message.
+    """
+    
     conn = get_connection()
     try:
         row = conn.execute(
