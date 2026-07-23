@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, date
 
 from src.db import get_connection
-from src.config import ROOM_TYPES, DEFAULT_ROOM_TYPE, HOTEL_ID
+from src.config import ROOM_TYPES, DEFAULT_ROOM_TYPE, HOTEL_ID, ROOM_INVENTORY
 
 
 NOT_FOUND = {"ok": False, "error": "No reservation found with that ID and email."}
@@ -16,6 +16,30 @@ def _valid_date(value):
         return datetime.strptime(value, "%Y-%m-%d").date()
     except (ValueError, TypeError):
         return None
+
+
+def _availability_error(conn, room_type, check_in, check_out, exclude_id=None):
+    """Return an error dict if that room type is sold out for the dates, else None."""
+    sql = (
+        "SELECT COUNT(*) AS n FROM reservations "
+        "WHERE room_type = ? AND status = 'active' "
+        "AND check_in < ? AND check_out > ?"
+    )
+    params = [room_type, check_out, check_in]
+    if exclude_id:
+        sql += " AND reservation_id != ?"
+        params.append(exclude_id)
+    booked = conn.execute(sql, params).fetchone()["n"]
+    capacity = ROOM_INVENTORY.get(room_type, 0)
+    if booked >= capacity:
+        return {
+            "ok": False,
+            "error": (
+                f"No {room_type} rooms available for {check_in} to {check_out}. "
+                f"Sold out ({capacity} total)."
+            ),
+        }
+    return None
 
 
 def create_reservation(guest_name, email, check_in, check_out,
@@ -55,6 +79,9 @@ def create_reservation(guest_name, email, check_in, check_out,
     rid = f"RES-{secrets.token_hex(3).upper()}"
     conn = get_connection()
     try:
+        sold_out = _availability_error(conn, room_type, check_in, check_out)
+        if sold_out:
+            return sold_out
         conn.execute(
             "INSERT INTO reservations VALUES (?,?,?,?,?,?,?,?,?)",
             (rid, HOTEL_ID, guest_name.strip(), email.strip().lower(),
@@ -131,6 +158,60 @@ def list_reservations(email):
             for r in rows
         ],
     }
+
+
+def modify_reservation(reservation_id, email, check_in=None, check_out=None,
+                       room_type=None):
+    """Update dates and/or room type on an active reservation.
+
+    Requires reservation ID and email. Pass only the fields the guest wants to
+    change. Ask for anything missing. Never invent values.
+    """
+    if check_in is None and check_out is None and room_type is None:
+        return {"ok": False, "error": "Provide at least one of: check_in, check_out, room_type."}
+
+    rid = reservation_id.strip().upper()
+    em = email.strip().lower()
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM reservations WHERE reservation_id = ? AND email = ?",
+            (rid, em),
+        ).fetchone()
+        if row is None:
+            return NOT_FOUND
+        if row["status"] == "cancelled":
+            return {"ok": False, "error": "Cannot modify a cancelled reservation."}
+
+        new_in = check_in if check_in is not None else row["check_in"]
+        new_out = check_out if check_out is not None else row["check_out"]
+        new_room = room_type if room_type is not None else row["room_type"]
+
+        ci, co = _valid_date(new_in), _valid_date(new_out)
+        if not ci or not co:
+            return {"ok": False, "error": "Dates must be in YYYY-MM-DD format."}
+        if ci < date.today():
+            return {"ok": False, "error": "Check-in date cannot be in the past."}
+        if co <= ci:
+            return {"ok": False, "error": "Check-out must be after check-in."}
+        if new_room not in ROOM_TYPES:
+            return {"ok": False, "error": f"Room type must be one of: {', '.join(sorted(ROOM_TYPES))}."}
+
+        sold_out = _availability_error(conn, new_room, new_in, new_out, exclude_id=rid)
+        if sold_out:
+            return sold_out
+
+        conn.execute(
+            "UPDATE reservations SET check_in = ?, check_out = ?, room_type = ? "
+            "WHERE reservation_id = ?",
+            (new_in, new_out, new_room, rid),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    return {"ok": True, "reservation_id": rid, "check_in": new_in,
+            "check_out": new_out, "room_type": new_room, "status": "active"}
 
 
 def cancel_reservation(reservation_id, email):

@@ -69,7 +69,8 @@ with st.sidebar:
         "- What is the famous dish?\n"
         "- What is the cancellation policy?\n"
         "- I'd like to book a room\n"
-        "- Show my reservations"
+        "- Show my reservations\n"
+        "- Change my check-out date"
     )
     if st.button("Clear conversation"):
         st.session_state.messages = []

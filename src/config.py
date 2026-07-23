@@ -39,6 +39,8 @@ HOTEL_ID = "grand-azure-bay-hotel"
 DB_PATH = str(BASE_DIR / "reservations.db")
 DEFAULT_ROOM_TYPE = "standard"
 ROOM_TYPES = {"standard", "deluxe", "suite"}
+# how many rooms of each type the hotel has (simple inventory)
+ROOM_INVENTORY = {"standard": 5, "deluxe": 3, "suite": 2}
 
 # --- LLM
 # Key comes from environment only — never hardcode, never commit.

@@ -9,6 +9,7 @@ from src.tools.reservations import (
     get_reservation as _get,
     cancel_reservation as _cancel,
     list_reservations as _list,
+    modify_reservation as _modify,
 )
 from src.prompts import SYSTEM_PROMPT
 from src.config import LLM_MODEL
@@ -81,11 +82,22 @@ def cancel_reservation(reservation_id: str, email: str) -> dict:
     return _cancel(reservation_id, email)
 
 
+@tool
+def modify_reservation(reservation_id: str, email: str, check_in: str = None,
+                       check_out: str = None, room_type: str = None) -> dict:
+    """Update dates and/or room type on an active reservation.
+
+    Requires reservation ID and email. Pass only fields the guest wants to change
+    (check_in, check_out, room_type). Confirm before calling.
+    """
+    return _modify(reservation_id, email, check_in, check_out, room_type)
+
+
 # Augment the LLM with tools
 
 model = ChatGroq(model=LLM_MODEL, temperature=0)
 tools = [search_hotel_info, create_reservation, list_my_reservations,
-         get_reservation, cancel_reservation]
+         get_reservation, cancel_reservation, modify_reservation]
 tools_by_name = {tool.name: tool for tool in tools}
 model_with_tools = model.bind_tools(tools)
 
@@ -109,7 +121,8 @@ def build_agent(guest_email=None):
         prompt += (
             f"\nThe guest is signed in with email: {guest_email}. "
             f"Use this email for list_my_reservations, get_reservation, "
-            f"cancel_reservation, and create_reservation — do not ask for it again.\n"
+            f"cancel_reservation, modify_reservation, and create_reservation "
+            f"— do not ask for it again.\n"
         )
     
     # Step 3: Define model node
