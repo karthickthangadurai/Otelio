@@ -30,8 +30,10 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 if not os.getenv("GROQ_API_KEY"):
     raise ValueError("GROQ_API_KEY not found")
 
-logging.basicConfig(level=logging.INFO, filename=LOG_PATH, force=True)
 log = logging.getLogger("otelio")
+if not log.handlers:
+    log.addHandler(logging.FileHandler(LOG_PATH))
+    log.setLevel(logging.INFO)
 
 EMAIL_TOOLS = {
     "create_reservation", "list_my_reservations", "get_reservation",
@@ -139,13 +141,25 @@ def build_agent(guest_email=None):
     def llm_call(state: AgentState):
         """LLM decides whether to call a tool or not"""
 
+        # Streamlit stores chat as {"role": "user", "content": "..."}
+        # {'messages': [AIMessage(content='', additional_kwargs={'reasoning_content': "We need to answer using search_hotel_info. Let's call it.", 
+        # 'tool_calls': [{'id': 'fc_512951a0-0257-4455-8659-db4de85621a2', 'function': {'arguments': '{"query":"check-in time"}', 'name': 'search_hotel_info'}, 'type': 'function'}]},
+        #  response_metadata={'token_usage': {'completion_tokens': 46, 'prompt_tokens': 586, 'total_tokens': 632, 'completion_time': 0.096142101, 'completion_tokens_details': {'reasoning_tokens': 15}, 
+        # 'prompt_time': 0.12781507, 'prompt_tokens_details': None, 'queue_time': 0.287292815, 'total_time': 0.223957171}, 'model_name': 'openai/gpt-oss-120b', 'system_fingerprint': 'fp_87b3c396db', 
+        # 'service_tier': 'on_demand', 'finish_reason': 'tool_calls', 'logprobs': None, 'model_provider': 'groq'}, id='lc_run--019f8f80-0921-7821-901b-887fc31a68ae-0', tool_calls=[{'name': 'search_hotel_info',
+        #  'args': {'query': 'check-in time'}, 'id': 'fc_512951a0-0257-4455-8659-db4de85621a2', 'type': 'tool_call'}], invalid_tool_calls=[], usage_metadata={'input_tokens': 586, 'output_tokens': 46, 
+        # 'total_tokens': 632, 'output_token_details': {'reasoning': 15}})],'llm_calls': 1}
+        
+        last = state["messages"][-1]
+        if isinstance(last, dict) and last.get("role") == "user":
+            log.info("user asked: %s", mask_payload(last["content"]))
+
         response = model_with_tools.invoke(
             [SystemMessage(content=prompt)] + state["messages"]
         )
-        if response.tool_calls:
-            log.info("llm_call tools=%s", [t["name"] for t in response.tool_calls])
-        else:
-            log.info("llm_call final=%s", mask_payload(response.content or "")[:300])
+
+        if not response.tool_calls:
+            log.info("model answered: %s", mask_payload(response.content or "")[:300])
 
         return {
             "messages": [response],
@@ -162,9 +176,14 @@ def build_agent(guest_email=None):
             args = dict(tool_call["args"])
             if guest_email and tool_call["name"] in EMAIL_TOOLS:
                 args["email"] = guest_email
-            log.info("tool_call name=%s args=%s", tool_call["name"], mask_payload(args))
             observation = tool.invoke(args)
-            log.info("tool_result name=%s result=%s", tool_call["name"], mask_payload(observation))
+            # one line per tool: name + args + result
+            log.info(
+                "tool %s | args=%s | result=%s",
+                tool_call["name"],
+                mask_payload(args),
+                mask_payload(observation),
+            )
             result.append(ToolMessage(content=str(observation), tool_call_id=tool_call["id"]))
         return {"messages": result}
 
