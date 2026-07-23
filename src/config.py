@@ -42,6 +42,9 @@ ROOM_TYPES = {"standard", "deluxe", "suite"}
 # how many rooms of each type the hotel has (simple inventory)
 ROOM_INVENTORY = {"standard": 5, "deluxe": 3, "suite": 2}
 
+# --- Logging (traces; PII is masked before write)
+LOG_PATH = str(BASE_DIR / "otelio.log")
+
 # --- LLM
 # Key comes from environment only — never hardcode, never commit.
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")  

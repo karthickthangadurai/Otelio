@@ -4,9 +4,10 @@
 # Environment Variables / Secrets
 .env
 
-# Local Databases & Vector Stores
-chroma_db/
-src/tools/reservations.db
+otelio.log
+experiments/otelio.log
+reservations.db
+src/reservations.db
 
 # Python bytecode / caches (Catches all nested __pycache__ folders)
 __pycache__/

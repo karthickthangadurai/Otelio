@@ -1,4 +1,5 @@
 import os
+import logging
 from dotenv import load_dotenv
 # from langchain_core.tools import tool
 # from langgraph.prebuilt import create_react_agent
@@ -12,7 +13,8 @@ from src.tools.reservations import (
     modify_reservation as _modify,
 )
 from src.prompts import SYSTEM_PROMPT
-from src.config import LLM_MODEL
+from src.config import LLM_MODEL, LOG_PATH
+from src.utils.pii import mask_payload
 
 from langchain.tools import tool
 from langchain.messages import AnyMessage
@@ -27,6 +29,14 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 
 if not os.getenv("GROQ_API_KEY"):
     raise ValueError("GROQ_API_KEY not found")
+
+logging.basicConfig(level=logging.INFO, filename=LOG_PATH, force=True)
+log = logging.getLogger("otelio")
+
+EMAIL_TOOLS = {
+    "create_reservation", "list_my_reservations", "get_reservation",
+    "cancel_reservation", "modify_reservation",
+}
 
 # Step 1: Define tools and model
 
@@ -118,11 +128,10 @@ def build_agent(guest_email=None):
 
     prompt = SYSTEM_PROMPT
     if guest_email:
+        # no raw email in the prompt — tool_node fills it in
         prompt += (
-            f"\nThe guest is signed in with email: {guest_email}. "
-            f"Use this email for list_my_reservations, get_reservation, "
-            f"cancel_reservation, modify_reservation, and create_reservation "
-            f"— do not ask for it again.\n"
+            "\nThe guest is signed in. For reservation tools, pass email as "
+            "'session'. Do not ask for their email again.\n"
         )
     
     # Step 3: Define model node
@@ -130,17 +139,16 @@ def build_agent(guest_email=None):
     def llm_call(state: AgentState):
         """LLM decides whether to call a tool or not"""
 
+        response = model_with_tools.invoke(
+            [SystemMessage(content=prompt)] + state["messages"]
+        )
+        if response.tool_calls:
+            log.info("llm_call tools=%s", [t["name"] for t in response.tool_calls])
+        else:
+            log.info("llm_call final=%s", mask_payload(response.content or "")[:300])
+
         return {
-            "messages": [
-                model_with_tools.invoke(
-                    [
-                        SystemMessage(
-                            content=prompt
-                        )
-                    ]
-                    + state["messages"]
-                )
-            ],
+            "messages": [response],
             "llm_calls": state.get('llm_calls', 0) + 1
         }
 
@@ -151,7 +159,12 @@ def build_agent(guest_email=None):
         result = []
         for tool_call in state["messages"][-1].tool_calls:
             tool = tools_by_name[tool_call["name"]]
-            observation = tool.invoke(tool_call["args"])
+            args = dict(tool_call["args"])
+            if guest_email and tool_call["name"] in EMAIL_TOOLS:
+                args["email"] = guest_email
+            log.info("tool_call name=%s args=%s", tool_call["name"], mask_payload(args))
+            observation = tool.invoke(args)
+            log.info("tool_result name=%s result=%s", tool_call["name"], mask_payload(observation))
             result.append(ToolMessage(content=str(observation), tool_call_id=tool_call["id"]))
         return {"messages": result}
 
