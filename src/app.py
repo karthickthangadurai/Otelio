@@ -4,8 +4,8 @@ Run:  streamlit run src/app.py
 """
 
 import streamlit as st
-import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
+# import sys, pathlib
+# sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 from src.orchestrator import build_agent
 
