@@ -43,5 +43,5 @@ ROOM_TYPES = {"standard", "deluxe", "suite"}
 # --- LLM
 # Key comes from environment only — never hardcode, never commit.
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")  
-LLM_MODEL = os.getenv("LLM_MODEL")        # set to your provider's model name
+LLM_MODEL = "openai/gpt-oss-120b"       # set to your provider's model name
 MAX_TOKENS = 1024

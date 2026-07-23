@@ -11,15 +11,12 @@ from src.tools.reservations import (
     cancel_reservation as _cancel,
 )
 from src.prompts import SYSTEM_PROMPT
+from src.config import LLM_MODEL
 
 load_dotenv(dotenv_path="../.env")
 if not os.getenv("GROQ_API_KEY"):
     raise ValueError("GROQ_API_KEY not found")
 
-llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
-
-
-# --- wrap your plain functions as tools ---------------------------------
 @tool
 def search_hotel_info(query: str) -> str:
     """Search the hotel's information document.
@@ -62,12 +59,19 @@ def cancel_reservation(reservation_id: str, email: str) -> dict:
     """
     return _cancel(reservation_id, email)
 
+def build_agent():
 
-agent = create_react_agent(
-    llm,
-    tools=[search_hotel_info, create_reservation, get_reservation, cancel_reservation],
-    prompt=SYSTEM_PROMPT,
-)
+    llm = ChatGroq(model=LLM_MODEL, temperature=0)
+    agent = create_react_agent(
+        llm,
+        tools=[search_hotel_info, create_reservation, get_reservation, cancel_reservation],
+        prompt=SYSTEM_PROMPT,
+    )
 
-result = agent.invoke({"messages": [{"role": "user", "content": "give me a summary of the hotel document"}]})
-print(result["messages"][-1].content)
+    return agent
+
+if __name__ == "__main__":
+
+    agent = build_agent()
+    result = agent.invoke({"messages": [{"role": "user", "content": "get my reservation with ID 'RES-520558' and email Test@Example.com"}]})
+    print(result["messages"][-1].content)
