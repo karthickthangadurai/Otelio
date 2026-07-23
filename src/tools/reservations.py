@@ -101,6 +101,38 @@ def get_reservation(reservation_id, email):
             "status": row["status"]}
 
 
+def list_reservations(email):
+    """List all reservations for one guest email."""
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email or ""):
+        return {"ok": False, "error": "A valid email address is required."}
+
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT reservation_id, guest_name, check_in, check_out, room_type, status "
+            "FROM reservations WHERE email = ? ORDER BY check_in",
+            (email.strip().lower(),),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    return {
+        "ok": True,
+        "count": len(rows),
+        "reservations": [
+            {
+                "reservation_id": r["reservation_id"],
+                "guest_name": r["guest_name"],
+                "check_in": r["check_in"],
+                "check_out": r["check_out"],
+                "room_type": r["room_type"],
+                "status": r["status"],
+            }
+            for r in rows
+        ],
+    }
+
+
 def cancel_reservation(reservation_id, email):
 
     """Cancel a reservation.

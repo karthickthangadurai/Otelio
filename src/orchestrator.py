@@ -8,6 +8,7 @@ from src.tools.reservations import (
     create_reservation as _create,
     get_reservation as _get,
     cancel_reservation as _cancel,
+    list_reservations as _list,
 )
 from src.prompts import SYSTEM_PROMPT
 from src.config import LLM_MODEL
@@ -51,6 +52,15 @@ def create_reservation(guest_name: str, email: str, check_in: str,
 
 
 @tool
+def list_my_reservations(email: str) -> dict:
+    """List all reservations for a guest email.
+
+    Use when the guest asks to see their bookings. Requires the guest's email.
+    """
+    return _list(email)
+
+
+@tool
 def get_reservation(reservation_id: str, email: str) -> dict:
     """Look up one reservation.
 
@@ -74,7 +84,8 @@ def cancel_reservation(reservation_id: str, email: str) -> dict:
 # Augment the LLM with tools
 
 model = ChatGroq(model=LLM_MODEL, temperature=0)
-tools = [search_hotel_info, create_reservation, get_reservation, cancel_reservation]
+tools = [search_hotel_info, create_reservation, list_my_reservations,
+         get_reservation, cancel_reservation]
 tools_by_name = {tool.name: tool for tool in tools}
 model_with_tools = model.bind_tools(tools)
 
@@ -84,7 +95,7 @@ class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], operator.add]
     llm_calls: int
 
-def build_agent():
+def build_agent(guest_email=None):
 
     # llm = ChatGroq(model=LLM_MODEL, temperature=0)
     # agent = create_react_agent(
@@ -92,6 +103,14 @@ def build_agent():
     #     tools=[search_hotel_info, create_reservation, get_reservation, cancel_reservation],
     #     prompt=SYSTEM_PROMPT,
     # )
+
+    prompt = SYSTEM_PROMPT
+    if guest_email:
+        prompt += (
+            f"\nThe guest is signed in with email: {guest_email}. "
+            f"Use this email for list_my_reservations, get_reservation, "
+            f"cancel_reservation, and create_reservation — do not ask for it again.\n"
+        )
     
     # Step 3: Define model node
 
@@ -103,7 +122,7 @@ def build_agent():
                 model_with_tools.invoke(
                     [
                         SystemMessage(
-                            content=SYSTEM_PROMPT
+                            content=prompt
                         )
                     ]
                     + state["messages"]
