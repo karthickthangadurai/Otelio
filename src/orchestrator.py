@@ -140,16 +140,7 @@ def build_agent(guest_email=None):
 
     def llm_call(state: AgentState):
         """LLM decides whether to call a tool or not"""
-
-        # Streamlit stores chat as {"role": "user", "content": "..."}
-        # {'messages': [AIMessage(content='', additional_kwargs={'reasoning_content': "We need to answer using search_hotel_info. Let's call it.", 
-        # 'tool_calls': [{'id': 'fc_512951a0-0257-4455-8659-db4de85621a2', 'function': {'arguments': '{"query":"check-in time"}', 'name': 'search_hotel_info'}, 'type': 'function'}]},
-        #  response_metadata={'token_usage': {'completion_tokens': 46, 'prompt_tokens': 586, 'total_tokens': 632, 'completion_time': 0.096142101, 'completion_tokens_details': {'reasoning_tokens': 15}, 
-        # 'prompt_time': 0.12781507, 'prompt_tokens_details': None, 'queue_time': 0.287292815, 'total_time': 0.223957171}, 'model_name': 'openai/gpt-oss-120b', 'system_fingerprint': 'fp_87b3c396db', 
-        # 'service_tier': 'on_demand', 'finish_reason': 'tool_calls', 'logprobs': None, 'model_provider': 'groq'}, id='lc_run--019f8f80-0921-7821-901b-887fc31a68ae-0', tool_calls=[{'name': 'search_hotel_info',
-        #  'args': {'query': 'check-in time'}, 'id': 'fc_512951a0-0257-4455-8659-db4de85621a2', 'type': 'tool_call'}], invalid_tool_calls=[], usage_metadata={'input_tokens': 586, 'output_tokens': 46, 
-        # 'total_tokens': 632, 'output_token_details': {'reasoning': 15}})],'llm_calls': 1}
-        
+    
         last = state["messages"][-1]
         if isinstance(last, dict) and last.get("role") == "user":
             log.info("user asked: %s", mask_payload(last["content"]))

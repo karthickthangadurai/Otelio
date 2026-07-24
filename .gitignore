@@ -1,15 +1,20 @@
 # Virtual Environment
 .otelio/
+.venv/
 
 # Environment Variables / Secrets
 .env
 
-otelio.log
-experiments/otelio.log
+# Local Databases & Vector Stores
+chroma_db/
 reservations.db
 src/reservations.db
 
-# Python bytecode / caches (Catches all nested __pycache__ folders)
+# Logs
+otelio.log
+experiments/otelio.log
+
+# Python bytecode / caches
 __pycache__/
 *.py[cod]
 *$py.class
@@ -17,6 +22,6 @@ __pycache__/
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# Excalidraw design backups (Optional: keep if you don't want them in git)
+# Excalidraw design backups
 otelio.excalidraw
 otelio.excalidraw.png
