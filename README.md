@@ -12,7 +12,7 @@ For the full design write-up (chunking, RAG eval, PII, guardrails), see
 
 ## UI
 
-![Otelio Streamlit UI](Otelio_UI.png)
+![Otelio Streamlit UI](Otelio_UI_.png)
 
 ---
 
