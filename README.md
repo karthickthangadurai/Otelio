@@ -10,6 +10,10 @@ retyping the email each time.
 For the full design write-up (chunking, RAG eval, PII, guardrails), see
 **[DESIGN.md](DESIGN.md)**.
 
+## UI
+
+![Otelio Streamlit UI](Otelio_UI.png)
+
 ---
 
 ## Setup
@@ -118,6 +122,7 @@ Otelio/
 │   └── test_agent.py      battery runner
 ├── experiments/           exploratory notebook
 ├── oteliov2.png           architecture diagram
+├── Otelio_UI.png          Streamlit UI screenshot
 ├── chroma_db/             vector store (created by ingest; gitignored)
 ├── reservations.db        SQLite bookings (gitignored)
 └── otelio.log             masked turn traces (gitignored)
