@@ -82,6 +82,10 @@ Latest run: **24/25** clear passes (weak spot: chef names).
 Try: check-in time · famous dish · book a room · show my reservations ·
 “show all bookings” (should refuse) · pool? (should say unknown).
 
+Adversarial / live edge cases (invented dates, invalid room types, tool leakage,
+ownership bypass) and the prompt fixes for them are documented in
+**[DESIGN.md](DESIGN.md#adversarial-testing--prompt-hardening)**.
+
 ---
 
 ## Layout

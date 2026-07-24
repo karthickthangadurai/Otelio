@@ -32,7 +32,11 @@ if not os.getenv("GROQ_API_KEY"):
 
 log = logging.getLogger("otelio")
 if not log.handlers:
-    log.addHandler(logging.FileHandler(LOG_PATH))
+    _handler = logging.FileHandler(LOG_PATH)
+    _handler.setFormatter(logging.Formatter(
+        "%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S",
+    ))
+    log.addHandler(_handler)
     log.setLevel(logging.INFO)
 
 EMAIL_TOOLS = {
