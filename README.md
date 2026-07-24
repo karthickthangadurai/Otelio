@@ -43,7 +43,7 @@ python tests/test_agent.py
 
 ## Architecture
 
-![Otelio architecture](otelio.png)
+![Otelio architecture](oteliov2.png)
 
 Four layers, each with one job:
 
