@@ -95,10 +95,30 @@ ownership bypass) and the prompt fixes for them are documented in
 ## Layout
 
 ```
-.env.example / .gitignore / README.md / DESIGN.md / requirements.txt
-src/           app, orchestrator, ingest, tools, utils/pii
-tests/         questions + test_agent.py
-data/          hotel PDF
-oteliov2.png   architecture diagram
-chroma_db/, reservations.db, otelio.log   local runtime (gitignored)
+Otelio/
+├── .env.example           GROQ_API_KEY= template (copy to .env)
+├── .gitignore             ignores .env, chroma_db, DBs, logs, venv
+├── README.md              short setup + overview
+├── DESIGN.md              detailed design notes
+├── requirements.txt
+├── data/                  hotel PDF
+├── src/
+│   ├── config.py          all shared constants and paths
+│   ├── db.py              SQLite connection and schema
+│   ├── ingest.py          one-time PDF ingestion
+│   ├── orchestrator.py    LangGraph agent + traces
+│   ├── prompts.py         system prompt
+│   ├── app.py             Streamlit UI (chat + email sign-in)
+│   ├── tools/
+│   │   ├── rag.py         search_hotel_info
+│   │   └── reservations.py create / list / get / modify / cancel
+│   └── utils/pii.py       masking helpers for logs
+├── tests/
+│   ├── questions.py       test question groups
+│   └── test_agent.py      battery runner
+├── experiments/           exploratory notebook
+├── oteliov2.png           architecture diagram
+├── chroma_db/             vector store (created by ingest; gitignored)
+├── reservations.db        SQLite bookings (gitignored)
+└── otelio.log             masked turn traces (gitignored)
 ```
