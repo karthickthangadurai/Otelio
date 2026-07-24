@@ -17,12 +17,13 @@ For the full design write-up (chunking, RAG eval, PII, guardrails), see
 ```bash
 git clone <repo-url> && cd Otelio
 
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 cp .env.example .env          # add GROQ_API_KEY=
 
-python -m src.ingest          # one-time: PDF → Chroma
+# always run these from the Otelio project root (not from inside src/)
+python -m src.ingest
 streamlit run src/app.py
 ```
 
