@@ -27,7 +27,10 @@ python -m src.ingest
 streamlit run src/app.py
 ```
 
-One API key (Groq). Embeddings run locally. First ingest downloads the embedding
+One API key (Groq). 
+To get the Groq key 
+ - Sign up with Groq and create a Groq API key with https://console.groq.com/keys to use LLM models
+Embeddings run locally. First ingest downloads the embedding
 model once (~130 MB).
 
 ```bash
